@@ -1,0 +1,38 @@
+# Here lies all the hardware requirement
+# for the virtual box needed to be created
+# using vagrantfile that have been defined
+ip:
+  master1: 192.168.56.25
+  master2: 192.168.56.26
+  master3: 192.168.56.27
+  worker1: 192.168.56.101
+  worker2: 192.168.56.102
+  monitor: 192.168.56.50
+  dbase: 192.168.56.60
+
+vagrantBox: "geerlingguy/centos7"
+box_version: "7.0"
+
+master:
+  count: 3
+  cpus: 2
+  memory: 2000
+  cpuexecutioncap: 100
+
+worker:
+  count: 2
+  cpus: 2
+  memory: 1500
+  cpuexecutioncap: 70
+
+monitoring:
+  hostname: "monitoring"
+  cpus: 1
+  memory: 1500
+  cpuexecutioncap: 50
+
+database:
+  hostname: "dbase"
+  cpus: 1
+  memory: 1000
+  cpuexecutioncap: 50

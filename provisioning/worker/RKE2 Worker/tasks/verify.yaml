@@ -1,0 +1,13 @@
+---
+# To verify if the rke2server already installed or not
+
+# Checking if the folder exist
+- name: Verifying...
+  stat:
+    path: "/etc/rancher/rke2"
+  register: rke2_status
+
+- name: Setting flag...
+  set_fact: 
+    rke2_exist: True
+  when: rke2_status.stat.exists

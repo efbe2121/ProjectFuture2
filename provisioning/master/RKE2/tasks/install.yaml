@@ -1,0 +1,8 @@
+---
+# Installing Rke2-server to the machine with shell command
+
+- name: Fetching the rke2-server application
+  become: yes
+  shell: 
+  	cmd:
+  		curl -sfL {{ rke2_url }} | sh -

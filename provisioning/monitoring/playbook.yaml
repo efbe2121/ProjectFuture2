@@ -1,0 +1,106 @@
+- name: Provisioning - Envoy balancer & service mesh
+  hosts: all
+  become: yes
+  gather_facts: False
+
+  tasks:
+  - name: Installing requirement
+    yum:
+      name: yum-utils
+      state: latest
+
+  - name: Import envoy key
+    rpm_key:
+      state: present
+      key: "https://rpm.dl.getenvoy.io/public/gpg.CF716AF503183491.key"
+
+  - name: Get repo
+    get_url:
+      url: https://rpm.dl.getenvoy.io/public/config.rpm.txt?distro=el&codename=7
+      dest: /etc/yum.repos.d/tetrate-getenvoy-rpm-stable.repo
+      mode: '0644'
+
+  - name: Install envoy
+    yum:
+      name: getenvoy-envoy
+      state: latest
+
+  - name: Copy service file
+    copy:
+      src: /home/master/Documents/projek2/lelah/Provision-Vagrant/provisioning/monitoring/envoy.service
+      dest: /etc/systemd/system/envoy.service
+      owner: root
+      group: root
+      mode: '0644'
+
+  - name: Reload daemon service & Enable & Start the Envoy service
+    systemd:
+      daemon_reload: yes
+      name: envoy.service
+      state: started
+      enabled: yes
+
+#################################################################################################################################
+#################################################################################################################################
+
+# - name: Provisioning - Zabbix Monitoring & Logging
+#   hosts: all
+#   become: yes
+#   gather_facts: False
+#   vars:
+#     zabbix_version: 5.0
+#     zabbix_package: [
+#       "zabbix-server-mysql",
+#       "zabbix-agent",
+#       "zabbix-get",
+#     ]
+#     zabbix_package_front_end: [
+#       "centos-release-scl",
+#       "zabbix-web-mysql",
+#       "zabbix-apache-conf"
+#     ]
+
+#   tasks:
+#   - name: Ensure SELinux is set to permissive mode
+#     lineinfile:
+#       path: /etc/selinux/config
+#       regexp: '^SELINUX='
+#       line: SELINUX=permissive
+
+#   - name: Install repository
+#     yum:
+#       name: "https://repo.zabbix.com/zabbix/{{ zabbix_version }}/rhel/7/x86_64/zabbix-release-{{ zabbix_version }}-1.el7.noarch.rpm"
+#       state: present
+#       validate_certs: no
+
+#   - name: Fetch zabbix packages
+#     yum:
+#       name: "{{ item }}"
+#       state: latest
+#     loop: "{{ zabbix_package }}"
+
+#################################################################################################################################
+#################################################################################################################################
+
+- name: Provisioning - Firewall and stuffs
+  hosts: all
+  become: yes
+  gather_facts: False
+
+  tasks:
+  - name: Accept all machine's data
+    ansible.posix.firewalld:
+      source: "{{ item }}"
+      permanent: yes
+      zone: public
+      state: enabled
+    loop:
+      # 3 masters
+      - 192.168.56.25
+      - 192.168.56.26
+      - 192.168.56.27
+      # 2 workers
+      - 192.168.56.101
+      - 192.168.56.102
+      # database
+      - 192.168.56.60

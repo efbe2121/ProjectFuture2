@@ -1,0 +1,14 @@
+---
+# Defaults variable for this tasks
+
+rke2_exist: False
+
+rke2_url: https://get.rke2.io
+
+# Configs variables
+
+tls_san:
+  - 192.168.56.25 # Ip of first master
+  - 192.168.56.26 # Ip of second master
+  - 192.168.56.27 # Ip of third master
+  - 192.168.56.50 # Ip of monitoringServer

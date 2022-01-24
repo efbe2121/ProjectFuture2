@@ -1,0 +1,8 @@
+---
+# Installing Rke2-worker to the machine with shell command
+
+- name: Fetching the rke2-worker application
+  become: yes
+  shell: 
+  	cmd:
+  		curl -sfL {{ rke2_url }} | INSTALL_RKE2_TYPE='agent' sh -

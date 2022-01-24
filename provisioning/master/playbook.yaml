@@ -1,0 +1,125 @@
+- name: Installing RKE2 Server
+  hosts: all
+  gather_facts: no
+  vars_files:
+    - ../../secrets/vars.yaml
+
+  roles:
+    - role: RKE2
+
+  post_tasks:
+    # - name: Clear firewalld rules before setting up
+    #   become: yes
+    #   file:
+    #     path: /etc/firewalld/zones/public.xml
+    #     state: absent
+
+    - name: Starting & Enabling some services
+      become: yes
+      systemd:
+        name: rke2-server
+        daemon_reload: yes
+        enabled: yes
+        state: started
+
+# https://docs.rke2.io/known_issues/
+# Firewalld conflicts with default networking¶
+# Firewalld conflicts with RKE2's default Canal 
+# (Calico + Flannel) networking stack. To avoid unexpected behavior, 
+# firewalld should be disabled on systems running RKE2.
+
+    - name: Disable firewalld
+      become: yes
+      systemd:
+        name: firewalld
+        enabled: no
+        state: stopped
+
+    # - name: Restart firewalld
+    #   become: yes
+    #   systemd:
+    #     name: firewalld
+    #     state: reloaded
+
+    # - name: Setting firewall master1
+    #   become: yes
+    #   ansible.posix.firewalld:
+    #     source: "{{ item }}"
+    #     permanent: yes
+    #     zone: public
+    #     state: enabled
+    #   loop:
+    #     - 192.168.56.25
+    #     - 192.168.56.27
+    #     - 192.168.56.50
+    #   when: current_host == "master1"
+
+    # - name: Setting firewall master2
+    #   become: yes
+    #   ansible.posix.firewalld:
+    #     source: "{{ item }}"
+    #     permanent: yes
+    #     zone: public
+    #     state: enabled
+    #   loop:
+    #     - 192.168.56.25
+    #     - 192.168.56.27
+    #     - 192.168.56.50
+    #   when: current_host == "master2"
+
+    # - name: Setting firewall master3
+    #   become: yes
+    #   ansible.posix.firewalld:
+    #     source: "{{ item }}"
+    #     permanent: yes
+    #     zone: public
+    #     state: enabled
+    #   loop:
+    #     - 192.168.56.25
+    #     - 192.168.56.27
+    #     - 192.168.56.50
+    #   when: current_host == "master3"
+
+    # - name: Restart firewalld
+    #   become: yes
+    #   systemd:
+    #     name: firewalld
+    #     state: reloaded
+
+- name: Installing Zabbix-agent
+  hosts: all
+  become: yes
+  gather_facts: no
+  vars:
+    zabbix_release_url: https://repo.zabbix.com/zabbix/5.0/rhel/7/x86_64/zabbix-release-5.0-1.el7.noarch.rpm
+
+  tasks:
+    - name: Fetching repository
+      yum: 
+        name: "{{ zabbix_release_url }}"
+        state: present
+        validate_certs: no
+
+    - name: Getting zabbix_agentd
+      yum:
+        name: zabbix-agent
+        state: latest
+
+    - name: Setting zabbix-agent config
+      lineinfile:
+        path: /etc/zabbix/zabbix_agentd.conf
+        regexp: "{{ item.regexp }}"
+        line: "{{ item.line }}"
+        owner: root
+        group: root
+        mode: 0644
+      with_items:
+        - { regexp: '^ServerActive=', line: 'ServerActive=192.168.56.50' }
+        - { regexp: '^Hostname=', line: 'Hostname={{ current_host }}' }
+         
+    - name: Start & Enable zabbix-agent
+      systemd:
+        name: zabbix-agent
+        daemon_reload: yes
+        state: started
+        enabled: yes

@@ -1,0 +1,10 @@
+---
+
+- name: Applying config of RKE2 Worker
+  become: yes
+  template:
+    src: templates/config.yaml.j2
+    dest: /etc/rancher/rke2/config.yaml
+    owner: "{{ owner_config }}"
+    group: "{{ owner_group }}"
+    mode: 0644

@@ -1,0 +1,7 @@
+---
+# Default variable for rke2 worker
+
+rke2_worker_exist: False
+rke2_url: https://get.rke2.io
+
+load_balancer_url: "https://192.168.56.50:9345"

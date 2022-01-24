@@ -1,0 +1,93 @@
+# Static_resources contain everything that is
+# configured statically when envoy starts as
+# opposed to dynamically at runtime.
+
+static_resources:
+  listeners:
+  - name: Listener1
+    address:
+      socket_address:
+        address: 0.0.0.0
+        port_value: 6443
+    filter_chains:
+    - filters:
+      - name: envoy.filters.network.tcp_proxy
+        typed_config:
+          "@type": "type.googleapis.com/envoy.extensions.filters.network.tcp_proxy.v3.TcpProxy"
+          stat_prefix: tcp_proxy
+          cluster: mastercluster
+
+  - name: Listener2
+    address:
+      socket_address:
+        address: 0.0.0.0
+        port_value: 9345
+    filter_chains:
+    - filters:
+      - name: envoy.filters.network.tcp_proxy
+        typed_config:
+          "@type": "type.googleapis.com/envoy.extensions.filters.network.tcp_proxy.v3.TcpProxy"
+          stat_prefix: tcp_proxy
+          cluster: jointomaster
+
+  clusters:
+  - name: jointomaster
+    connect_timeout: 50s
+    type: STATIC
+    lb_policy: round_robin
+    load_assignment:
+      cluster_name: mastercluster
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                address: 192.168.56.25
+                port_value: 9345
+                ipv4_compat: true
+        - endpoint:
+            address:
+              socket_address:
+                address: 192.168.56.26
+                port_value: 9345
+                ipv4_compat: true
+        - endpoint:
+            address:
+              socket_address:
+                address: 192.168.56.27
+                port_value: 9345
+                ipv4_compat: true
+
+  - name: mastercluster
+    connect_timeout: 50s
+    type: STATIC
+    lb_policy: round_robin
+    load_assignment:
+      cluster_name: mastercluster
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                address: 192.168.56.25
+                port_value: 6443
+                ipv4_compat: true
+        - endpoint:
+            address:
+              socket_address:
+                address: 192.168.56.26
+                port_value: 6443
+                ipv4_compat: true
+        - endpoint:
+            address:
+              socket_address:
+                address: 192.168.56.27
+                port_value: 6443
+                ipv4_compat: true
+
+admin:
+  access_log_path: /tmp/admin_access.log
+  address:
+    socket_address:
+      address: 0.0.0.0
+      port_value: 8001

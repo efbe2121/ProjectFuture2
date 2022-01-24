@@ -1,0 +1,19 @@
+- name: Applying config of RKE2 Server master 1
+  become: yes
+  template:
+    src: templates/config_master1.yaml.j2
+    dest: /etc/rancher/rke2/config.yaml
+    owner: "{{ owner_config }}"
+    group: "{{ owner_group }}"
+    mode: 0644
+  when: current_host == "master1"
+
+- name: Applying config of RKE2 Server other master
+  become: yes
+  template:
+    src: templates/config_master23.yaml.j2
+    dest: /etc/rancher/rke2/config.yaml
+    owner: "{{ owner_config }}"
+    group: "{{ owner_group }}"
+    mode: 0644
+  when: current_host != "master1"
