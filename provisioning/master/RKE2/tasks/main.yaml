@@ -6,12 +6,12 @@
 
 - name: Installation...
   include_tasks: install.yaml
-  when: not rke2_exist
+  when: rke2_exist == False
 
 - name: Verifying installation...
   include_tasks: verify.yaml
-  when: not rke2_exist
+  when: rke2_exist == False
 
 - name: Making config files...
   include_tasks: config.yaml
-  when: rke2_exist
+  when: rke2_exist == True

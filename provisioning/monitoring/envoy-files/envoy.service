@@ -6,8 +6,9 @@ After=network-online.target
 [Service]
 User=root
 Restart=on-failure
+TimeoutStartSec=40
 ExecStart=/bin/envoy \
-  --config-path /vagrant/provisioning/monitoring/envoy-me.yaml
+  --config-path /vagrant/provisioning/monitoring/envoy-files/envoy-me.yaml
 
 [Install]
 WantedBy=default.target

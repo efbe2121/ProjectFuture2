@@ -10,29 +10,38 @@ ip:
   monitor: 192.168.56.50
   dbase: 192.168.56.60
 
+mac:
+  master1: 0800271333ce
+  master2: 582a2ba1af97
+  master3: 58fd69a086cd
+  worker1: 58fdbb92d6cd
+  worker2: 143235bfe733
+  monitor: 6c15d491196d
+  dbase: 488ba2150148
+
 vagrantBox: "geerlingguy/centos7"
 box_version: "7.0"
 
 master:
   count: 3
-  cpus: 2
-  memory: 2000
+  cpus: 6
+  memory: 2400
   cpuexecutioncap: 100
 
 worker:
   count: 2
-  cpus: 2
-  memory: 1500
-  cpuexecutioncap: 70
+  cpus: 6
+  memory: 2000
+  cpuexecutioncap: 100
 
 monitoring:
   hostname: "monitoring"
   cpus: 1
-  memory: 1500
+  memory: 800
   cpuexecutioncap: 50
 
 database:
   hostname: "dbase"
   cpus: 1
-  memory: 1000
+  memory: 800
   cpuexecutioncap: 50

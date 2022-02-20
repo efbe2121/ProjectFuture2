@@ -27,7 +27,7 @@
 
   - name: Copy service file
     copy:
-      src: /home/master/Documents/projek2/lelah/Provision-Vagrant/provisioning/monitoring/envoy.service
+      src: /home/master/Documents/projek2/lelah/Provision-Vagrant/provisioning/monitoring/envoy-files/envoy.service
       dest: /etc/systemd/system/envoy.service
       owner: root
       group: root

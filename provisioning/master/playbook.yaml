@@ -1,29 +1,17 @@
 - name: Installing RKE2 Server
   hosts: all
   gather_facts: no
-  vars_files:
-    - ../../secrets/vars.yaml
+  vars_files: "../../secrets/vars.yaml"
 
-  roles:
-    - role: RKE2
-
-  post_tasks:
-    # - name: Clear firewalld rules before setting up
-    #   become: yes
-    #   file:
-    #     path: /etc/firewalld/zones/public.xml
-    #     state: absent
-
-    - name: Starting & Enabling some services
-      become: yes
-      systemd:
-        name: rke2-server
-        daemon_reload: yes
-        enabled: yes
-        state: started
+  pre_tasks:
 
 # https://docs.rke2.io/known_issues/
-# Firewalld conflicts with default networking¶
+# NetworkManager manipulates the routing table for interfaces in the 
+# default network namespace where many CNIs, including RKE2's default, 
+# create veth pairs for connections to containers. This can interfere 
+# with the CNI’s ability to route correctly.
+
+# Firewalld conflicts with default networking
 # Firewalld conflicts with RKE2's default Canal 
 # (Calico + Flannel) networking stack. To avoid unexpected behavior, 
 # firewalld should be disabled on systems running RKE2.
@@ -34,6 +22,14 @@
         name: firewalld
         enabled: no
         state: stopped
+
+    - name: Remove NetworkManager
+      become: yes
+      yum:
+        name: NetworkManager
+        state: absent
+
+    # Here's the list of firewall if you want to try using it
 
     # - name: Restart firewalld
     #   become: yes
@@ -85,6 +81,20 @@
     #   systemd:
     #     name: firewalld
     #     state: reloaded
+
+  roles:
+    
+    - role: RKE2
+
+  post_tasks:
+
+    - name: Starting & Enabling RKE2
+      become: yes
+      systemd:
+        name: rke2-server
+        daemon_reload: yes
+        enabled: yes
+        state: started
 
 - name: Installing Zabbix-agent
   hosts: all

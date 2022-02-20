@@ -9,5 +9,5 @@
 
 - name: Setting flag...
   set_fact: 
-    rke2_exist: True
+    rke2_worker_exist: True
   when: rke2_status.stat.exists

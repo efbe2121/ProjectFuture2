@@ -35,6 +35,58 @@ Vagrant.configure("2") do |config|
 
   ################################
   #                              #
+  # Creation of DatabaseServer   #
+  #                              #
+  ################################
+
+  config.vm.define "databaseServer" do |db|
+
+    db.vm.box = cfgs.fetch('vagrantBox')
+    db.vm.hostname = cfgs.fetch('database').fetch('hostname')
+
+    db.vm.network "public_network", :adapter=>1, :bridge=>"wlo1", :mac => cfgs.fetch('mac').fetch('dbase')
+    db.vm.network "private_network", :name => "vboxnet0", :adapter => 2, :ip => cfgs.fetch('ip').fetch('dbase')
+    db.ssh.host = cfgs.fetch('ip').fetch('dbase')
+
+    db.vm.provider :virtualbox do |vb|
+      vb.name = "database"
+      vb.cpus = cfgs.fetch('database').fetch('cpus')
+      vb.memory = cfgs.fetch('database').fetch('memory')
+      vb.customize ["modifyvm", :id, "--cpuexecutioncap", cfgs.fetch('database').fetch('cpuexecutioncap')]
+    end
+
+  end
+
+  ################################
+  #                              #
+  # Creation of MonitoringServer #
+  #                              #
+  ################################
+
+  config.vm.define "monitoringServer" do |mn|
+
+    mn.vm.box = cfgs.fetch('vagrantBox')
+    mn.vm.hostname = cfgs.fetch('monitoring').fetch('hostname')
+    
+    mn.vm.network "public_network", :adapter=>1, :bridge=>"wlo1", :mac => cfgs.fetch('mac').fetch('monitor')
+    mn.vm.network "private_network", :name => "vboxnet0", :adapter => 2, :ip => cfgs.fetch('ip').fetch('monitor')
+    mn.ssh.host = cfgs.fetch('ip').fetch('monitor')
+
+    mn.vm.provider :virtualbox do |vb|
+      vb.name = "monitor"
+      vb.cpus = cfgs.fetch('monitoring').fetch('cpus')
+      vb.memory = cfgs.fetch('monitoring').fetch('memory')
+      vb.customize ["modifyvm", :id, "--cpuexecutioncap", cfgs.fetch('monitoring').fetch('cpuexecutioncap')]
+    end
+
+    mn.vm.provision "ansible" do |asb|
+      asb.playbook = "provisioning/monitoring/playbook.yaml"
+    end
+
+  end
+
+  ################################
+  #                              #
   # Looping over master creation #
   #                              #
   ################################
@@ -48,7 +100,9 @@ Vagrant.configure("2") do |config|
       master.vm.box = cfgs.fetch('vagrantBox')
       master.vm.hostname = hostname
 
+      master.vm.network "public_network", :adapter=>1, :bridge=>"wlo1", :mac => cfgs.fetch('mac').fetch('master%d' % i)
       master.vm.network "private_network", :name => "vboxnet0", :adapter => 2, :ip => cfgs.fetch('ip').fetch('master%d' % i)
+      master.ssh.host = cfgs.fetch('ip').fetch('master%d' % i)
 
       master.vm.provider :virtualbox do |vb|
         vb.name = hostname
@@ -84,7 +138,9 @@ Vagrant.configure("2") do |config|
       worker.vm.box = cfgs.fetch('vagrantBox')
       worker.vm.hostname = hostname
       
+      worker.vm.network "public_network", :adapter=>1, :bridge=>"wlo1", :mac => cfgs.fetch('mac').fetch('worker%d' % i)
       worker.vm.network "private_network", :name => "vboxnet0", :adapter => 2, :ip => cfgs.fetch('ip').fetch('worker%d' % i)
+      worker.ssh.host = cfgs.fetch('ip').fetch('worker%d' % i)
 
       worker.vm.provider :virtualbox do |vb|
         vb.name = hostname
@@ -102,54 +158,6 @@ Vagrant.configure("2") do |config|
         asb.vault_password_file = "secrets/vault_pwd"
       end
       
-    end
-
-  end
-
-  ################################
-  #                              #
-  # Creation of MonitoringServer #
-  #                              #
-  ################################
-
-  config.vm.define "monitoringServer" do |mn|
-
-    mn.vm.box = cfgs.fetch('vagrantBox')
-    mn.vm.hostname = cfgs.fetch('monitoring').fetch('hostname')
-    
-    mn.vm.network "private_network", :name => "vboxnet0", :adapter => 2, :ip => cfgs.fetch('ip').fetch('monitor')
-
-    mn.vm.provider :virtualbox do |vb|
-      vb.name = "monitor"
-      vb.cpus = cfgs.fetch('monitoring').fetch('cpus')
-      vb.memory = cfgs.fetch('monitoring').fetch('memory')
-      vb.customize ["modifyvm", :id, "--cpuexecutioncap", cfgs.fetch('monitoring').fetch('cpuexecutioncap')]
-    end
-
-    mn.vm.provision "ansible" do |asb|
-      asb.playbook = "provisioning/monitoring/playbook.yaml"
-    end
-
-  end
-
-  ################################
-  #                              #
-  # Creation of DatabaseServer   #
-  #                              #
-  ################################
-
-  config.vm.define "databaseServer" do |db|
-
-    db.vm.box = cfgs.fetch('vagrantBox')
-    db.vm.hostname = cfgs.fetch('database').fetch('hostname')
-
-    db.vm.network "private_network", :name => "vboxnet0", :adapter => 2, :ip => cfgs.fetch('ip').fetch('dbase')
-
-    db.vm.provider :virtualbox do |vb|
-      vb.name = "database"
-      vb.cpus = cfgs.fetch('database').fetch('cpus')
-      vb.memory = cfgs.fetch('database').fetch('memory')
-      vb.customize ["modifyvm", :id, "--cpuexecutioncap", cfgs.fetch('database').fetch('cpuexecutioncap')]
     end
 
   end
