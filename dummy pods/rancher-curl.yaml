@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: curl-demo-test
+spec:
+  containers:
+  - name: ranchercurl
+    image: rancher/curl
+    args:
+    - https://github.com
