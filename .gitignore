@@ -1,2 +1,3 @@
-
-cicd/JenkinsX-Blibli/
+secrets/vault_pwd
+secrets/dashboardtoken
+secrets/teleportFile
