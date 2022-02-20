@@ -1,5 +1,5 @@
 # ProjectFuture2
-For 2nd phase of FutureProgram
+For 2nd phase of FutureProgram, where everything is made with love and effort
 ```bash
 ├── backups
 │   ├── CoreDNS
@@ -128,14 +128,11 @@ For 2nd phase of FutureProgram
 │           └── templates
 │               └── config.yaml.j2
 ├── secrets
-│   ├── dashboardtoken
-│   ├── IngressWebhookSecrets.yaml
 │   ├── manifests
 │   │   ├── dockerhub.yaml
 │   │   └── githubtoken.yaml
-│   ├── teleportFile
-│   ├── vars.yaml
-│   └── vault_pwd
+|   ├── IngressWebhookSecrets.yaml
+│   └── vars.yaml
 └── Vagrantfile
 
 48 directories, 88 files
