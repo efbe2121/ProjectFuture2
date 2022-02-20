@@ -1,0 +1,16 @@
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: k8s-app
+                operator: In
+                values:
+                - kube-dns
+            topologyKey: kubernetes.io/hostname
+      containers:
+      - args:
+        - -conf
+        - /etc/coredns/Corefile
+        image: rancher/hardened-coredns:v1.8.5-build20211006
