@@ -1,7 +1,7 @@
 # ProjectFuture2
 For 2nd phase of FutureProgram, where everything is made with love and effort
 
-link to the presentation : https://docs.google.com/presentation/d/1FyE_h2XQePux3-rGbzHtMug27A_HguNRiJ3NRpJxPcU/edit?usp=sharing
+link to the presentation : https://s.id/FutureProgram2
 ```bash
 ├── backups
 │   ├── CoreDNS
