@@ -1,0 +1,66 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: hello
+
+spec:
+  params:
+    - name: personel
+      description: The name we gonna say hello to
+      default: World
+      type: string
+  steps:
+    - name: say-hello
+      image: alpine
+      command:
+        - echo
+      args: ['Hello,.. uhhhh $(params.personel)!']
+
+---
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: saying-names
+
+spec:
+  tasks:
+    - name: first
+      params:
+        - name: personel
+          value: Yow
+      taskRef:
+        name: hello
+    - name: second
+      params:
+        - name: personel
+          value: eFBe
+      taskRef:
+        name: hello
+    - name: third
+      params:
+        - name: personel
+          value: joniiiiiiii
+      taskRef:
+        name: hello
+      runAfter:
+        - first
+        - second
+    - name: fourth
+      params:
+        - name: personel
+          value: Wooooooourld
+      taskRef:
+        name: hello
+      runAfter:
+        - third
+
+---
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  name: saying-names-run
+
+spec:
+  pipelineRef:
+    name: saying-names

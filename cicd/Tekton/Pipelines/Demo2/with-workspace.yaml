@@ -1,0 +1,62 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: tkn-pvc
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: write
+spec:
+  workspaces:
+    - name: output
+  steps:
+    - name: writing
+      image: alpine
+      command:
+        - /bin/bash
+      args: ['-c','echo hello > $(workspaces.output.path)/hello.txt && echo done!']
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: read
+spec:
+  workspaces:
+    - name: output
+  steps:
+    - name: reading
+      image: alpine
+      command:
+        - /bin/bash
+      args: ['-c', 'cat $(workspaces.output.path)/hello.txt']
+---
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: workspace-test
+spec:
+  workspaces:
+    - name: pipeline-tester
+  tasks:
+    - name: first
+      taskRef:
+        name: write
+      workspaces:
+        - name: output
+          workspace: pipeline-tester
+    - name: second
+      taskRef:
+        name: read
+      workspaces:
+        - name: output
+          workspace: pipeline-tester
+      runAfter:
+        - write

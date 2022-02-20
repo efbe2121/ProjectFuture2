@@ -1,0 +1,351 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: tekton-cicd
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: tekton-triggers-sa
+  namespace: tekton-cicd
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: triggers-eventlistener-binding
+  namespace: tekton-cicd
+subjects:
+- kind: ServiceAccount
+  name: tekton-triggers-sa
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: tekton-triggers-eventlistener-roles
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: triggers-eventlistener-clusterbinding
+subjects:
+- kind: ServiceAccount
+  name: tekton-triggers-sa
+  namespace: tekton-cicd
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: tekton-triggers-eventlistener-clusterroles
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: tekton-triggers-clusterbinding
+subjects:
+- kind: ServiceAccount
+  name: tekton-triggers-sa
+  namespace: tekton-cicd
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: tekton-triggers-clusterrole
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: tekton-triggers-createwebhook
+  namespace: tekton-cicd
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  verbs:
+  - get
+  - list
+  - create
+  - update
+  - delete
+- apiGroups:
+  - triggers.tekton.dev
+  resources:
+  - eventlisteners
+  verbs:
+  - get
+  - list
+  - create
+  - update
+  - delete
+- apiGroups:
+  - ""
+  resources:
+  - ingresses
+  verbs:
+  - create
+  - get
+  - list
+  - delete
+  - update
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: tekton-triggers-createwebhook
+  namespace: tekton-cicd
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: tekton-triggers-createwebhook
+  namespace: tekton-cicd
+subjects:
+  - kind: ServiceAccount
+    name: tekton-triggers-createwebhook
+    namespace: tekton-cicd
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: tekton-triggers-createwebhook
+
+---
+apiVersion: tekton.dev/v1alpha1
+kind: Condition
+metadata:
+  name: go-test
+  namespace: tekton-cicd
+spec:
+  resources:
+    - name: source-repo
+      type: git
+  check:
+    image: golang
+    command: ["go"]
+    workingDir: "$(resources.source-repo.path)"
+    args: ['test', "./..."]
+
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: deploy-locally
+  namespace: tekton-cicd
+spec:
+  resources:
+    inputs:
+      - name: image-source
+        type: image
+    outputs:
+    - name: event-to-sink
+      type: cloudEvent
+  steps:
+    - name: run-kubectl
+      image: lachlanevenson/k8s-kubectl
+      env:
+        - name: "DOCKER_CONFIG"
+          value: "/tekton/home/.docker/"
+      command: ["kubectl"]
+      args:
+        - "run"
+        - "tekton-triggers-built-me"
+        - "--image"
+        - "$(resources.inputs.image-source.url)"
+        - "--env=PORT=8080"
+
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: build-docker-image
+  namespace: tekton-cicd
+spec:
+  params:
+  - name: pathToContext
+    description: The build directory used by img
+    default: /workspace/source-repo
+  - name: pathToDockerFile
+    type: string
+    description: The path to the dockerfile to build
+    default: $(resources.inputs.source-repo.path)/Dockerfile
+  resources:
+    inputs:
+      - name: source-repo
+        type: git
+    outputs:
+      - name: builtImage
+        type: image
+  steps:
+    - name: build-and-push
+      image: gcr.io/kaniko-project/executor:v0.16.0
+      command:
+        - /kaniko/executor
+      args:
+        - --dockerfile=$(params.pathToDockerFile)
+        - --destination=$(resources.outputs.builtImage.url)
+        - --context=$(params.pathToContext)
+
+---
+# The Pipeline will run through several tasks:
+# - source is pulled from git
+# - conditions say go test must pass before moving on
+# - source is built into an image by img
+# - image output is pushed to ECR
+# - cloudevent emitted
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: pipeline-cicd
+  namespace: tekton-cicd
+spec:
+  resources:
+    - name: source-repo
+      type: git
+    - name: image-source
+      type: image
+    - name: event-to-sink
+      type: cloudEvent
+  tasks:
+    - name: build-docker-image
+      taskRef:
+        name: build-docker-image
+      conditions:
+      - conditionRef: "go-test"
+        resources:
+          - name: source-repo
+            resource: source-repo
+      params:
+        - name: pathToContext
+          value: /workspace/source-repo
+      resources:
+        inputs:
+          - name: source-repo
+            resource: source-repo
+        outputs:
+          - name: builtImage
+            resource: image-source
+    - name: deploy-locally
+      taskRef:
+        name: deploy-locally
+      resources:
+        inputs:
+          - name: image-source
+            resource: image-source
+            from:
+              - build-docker-image
+        outputs:
+          - name: event-to-sink
+            resource: event-to-sink
+
+---
+# Finally, we need something to receive our cloudevent announcing success!
+# That is this services only purpose
+apiVersion: v1
+kind: Service
+metadata:
+  name: event-display
+  namespace: tekton-cicd
+  labels:
+    app: event-display
+spec:
+  type: ClusterIP
+  ports:
+    - name: listener
+      port: 8080
+      protocol: TCP
+  selector:
+    app: event-display
+
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: event-display
+  namespace: tekton-cicd
+  labels:
+    app: event-display
+spec:
+  hostname: event-display
+  containers:
+  - image: gcr.io/knative-releases/github.com/knative/eventing-sources/cmd/event_display
+    name: web
+
+---
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: TriggerTemplate
+metadata:
+  name: triggertemplate-tektoncicd
+  namespace: tekton-cicd
+spec:
+  params:
+    - name: gitrevision
+      description: The git revision
+      default: master
+    - name: gitrepositoryurl
+      description: The git repository url
+    - name: namespace
+      description: The namespace to create the resources
+  resourcetemplates:
+    - apiVersion: tekton.dev/v1beta1
+      kind: PipelineRun
+      metadata:
+        generateName: pipeline-run-tekton-cicd
+        namespace: $(tt.params.namespace)
+      spec:
+        serviceAccountName: tekton-triggers-sa
+        pipelineRef:
+          name: pipeline-cicd
+        resources:
+          - name: source-repo
+            resourceSpec:
+              type: git
+              params:
+              - name: revision
+                value: $(tt.params.gitrevision)
+              - name: url
+                value: $(tt.params.gitrepositoryurl)
+          - name: image-source
+            resourceSpec:
+              type: image
+              params:
+                - name: url
+                  value: https://github.com/efbe2121/TektonGit
+          - name: event-to-sink
+            resourceSpec:
+              type: cloudEvent
+              params:
+                - name: targetURI
+                  value: http://event-display.getting-started.svc.cluster.local
+
+---
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: TriggerBinding
+metadata:
+  name: tekton-cicd-pipelinebinding
+  namespace: tekton-cicd
+spec:
+  params:
+    - name: gitrevision
+      value: $(body.head_commit.id)
+    - name: namespace
+      value: getting-started
+    - name: gitrepositoryurl
+      value: "https://github.com/$(body.repository.full_name)"
+
+---
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: EventListener
+metadata:
+  name: tekton-cicd-listener
+  namespace: tekton-cicd
+spec:
+  serviceAccountName: tekton-triggers-sa
+  triggers:
+    - bindings:
+      - ref: tekton-cicd-pipelinebinding
+      template:
+        ref: triggertemplate-tektoncicd

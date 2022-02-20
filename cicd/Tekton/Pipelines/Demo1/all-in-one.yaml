@@ -1,0 +1,44 @@
+---
+apiVersion: tekton.dev/v1alpha1
+kind: PipelineResource
+metadata:
+  name: git-source
+spec:
+  type: git
+  params:
+    - name: url
+      value: https://github.com/efbe2121/TektonGit.git
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: listing-files
+spec:
+  resources:
+    inputs:
+      - name: repo
+        type: git
+        targetPath: helloww #This is where the gitrepo cloned into a folder
+  steps:
+    - name: listing-file-in-repo
+      image: registry.access.redhat.com/ubi8/ubi
+      command: 
+        - /bin/bash
+      args: ['-c', 'ls -l /workspace/helloww']
+---
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: count
+spec:
+  resources:
+    - name: git-source
+      type: git
+  tasks:
+    - name: task1
+      taskRef:
+        name: listing-files
+      resources:
+        inputs:
+          - name: repo
+            resource: git-source

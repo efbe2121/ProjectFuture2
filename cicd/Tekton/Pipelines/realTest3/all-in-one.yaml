@@ -1,0 +1,171 @@
+# Source: https://github.com/joellord/handson-tekton
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: npm
+spec:
+  params:
+    - name: pathContext
+      description: Path to application inside git
+      default: "."
+      type: string
+    - name: action
+      description: Operation to be performed by npm
+      default: "start"
+      type: string
+  resources:
+    inputs:
+      - name: repo
+        type: git
+  steps:
+    - name: npm-install
+      image: node:14
+      workingDir: /workspace
+      command:
+        - /bin/bash
+      args: ['-c', 'cd repo/$(params.pathContext) && npm install']
+    - name: npm-lint
+      image: node:14
+      workingDir: /workspace
+      command:
+        - /bin/bash
+      args: ['-c', 'cd repo/$(params.pathContext) && npm $(params.action)']
+
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: s2i-nodejs
+spec:
+  params:
+    - name: image-name
+      description: Name of the docker image that gonna be pushed and deployed locally
+      type: string
+    - name: registry
+      type: string
+      default: "docker.io"
+  resources:
+    inputs:
+      - name: repo
+        type: git
+  steps:
+    - name: generate
+      image: quay.io/openshift-pipeline/s2i
+      workingDir: /workspace/repo/app
+      command: ["s2i", "build", ".", "registry.access.redhat.com/ubi8/nodejs-12", "--as-dockerfile", "/gensource/Dockerfile.gen"]
+      volumeMounts:
+        - name: gensource
+          mountPath: /gensource
+    - name: build
+      image: quay.io/buildah/stable
+      env:
+        - name: dockerhub_cred_user
+          valueFrom:
+            secretKeyRef:
+              name: dhubcred
+              key: docker-user
+      workingDir: /gensource
+      command: ["buildah", "bud", "--tls-verify=false", "--layers", "-f", "/gensource/Dockerfile.gen", "-t", "$(params.registry)/$(docker_hubcred_user)/$(params.image-name)", "."]
+      volumeMounts:
+        - name: varlibcontainers
+          mountPath: /var/lib/containers
+        - name: gensource
+          mountPath: /gensource
+      securityContext:
+        privileged: true
+    - name: push
+      image: quay.io/buildah/stable
+      env:
+        - name: dockerhub_cred_user
+          valueFrom:
+            secretKeyRef:
+              name: dhubcred
+              key: docker-user
+        - name: dockerhub_cred_pass
+          valueFrom:
+            secretKeyRef:
+              name: dhubcred
+              key: docker-pass
+      command: ['buildah', 'push', '--creds=$(dockerhub_cred_user):$(dockerhub_cred_pass)', '--tls-verify=false', '$(params.registry)/$(dockerhub_cred_user)/$(params.image-name)', 'docker://$(params.registry)/$(dockerhub_cred_user)/$(params.image-name)']
+      volumeMounts:
+        - name: varlibcontainers
+          mountPath: /var/lib/containers
+      securityContext:
+        privileged: true
+  volumes:
+    - name: varlibcontainers
+      emptyDir: {}
+    - name: gensource
+      emptyDir: {}
+
+---
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: app-deploy
+spec:
+  params:
+    - name: image-name
+      type: string
+      description: Name of the image to produce (will be user/image-name)
+    - name: registry
+      type: string
+      default: "docker.io"
+  resources:
+    - name: git-repo
+      type: git
+  tasks:
+    - name: lint
+      taskRef:
+        name: npm
+      params:
+        - name: pathContext
+          value: app
+        - name: action
+          value: run lint
+      resources:
+        inputs:
+          - name: repo
+            resource: git-repo
+    - name: test
+      taskRef:
+        name: npm
+      params:
+        - name: pathContext
+          value: app
+        - name: action
+          value: run test
+      resources:
+        inputs:
+          - name: repo
+            resource: git-repo
+    - name: build-and-deploy
+      params:
+        - name: image-name
+          value: $(params.image-name)
+        - name: registry
+          value: $(params.registry)
+      taskRef:
+        name: s2i-nodejs
+      resources:
+        inputs:
+          - name: repo
+            resource: git-repo
+      runAfter:
+        - lint
+        - test
+
+# ---
+# apiVersion: tekton.dev/v1beta1
+# kind: PipelineRun
+# metadata:
+#   name: app-deploy-run
+# spec:
+#   pipelineRef:
+#     name: app-deploy
+#   params:
+#     - name: image-name
+#       value: nodejsapps
+#     - name: registry
+#       value: "docker.io"

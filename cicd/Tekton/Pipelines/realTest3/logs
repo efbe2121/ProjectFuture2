@@ -1,0 +1,119 @@
+Tekton/Pipelines/realTest3 ❯ tkn pipeline start app-deploy --showlog
+no pipeline resource of type "git" found in namespace: default
+Please create a new "git" resource for pipeline resource "git-repo"
+? Enter a name for a pipeline resource : git-source
+? Enter a value for url :  https://github.com/efbe2121/TektonGit
+? Enter a value for revision :  main
+New git resource "git-source" has been created
+resource status %!s(*v1alpha1.PipelineResourceStatus=<nil>)
+
+? Value for param `image-name` of type `string`? nodeapps
+? Value for param `registry` of type `string`? (Default is `docker.io`) docker.io
+Pipelinerun started: app-deploy-run-jkzjr
+Waiting for logs to be available...
+[lint : git-source-repo-cjxsx] {"level":"info","ts":1645374803.673292,"caller":"git/git.go:170","msg":"Successfully cloned https://github.com/efbe2121/TektonGit @ a81c113dfc71c4f70420912c7f4f01f8432219df (grafted, HEAD, origin/main) in path /workspace/repo"}
+[lint : git-source-repo-cjxsx] {"level":"info","ts":1645374804.0503767,"caller":"git/git.go:209","msg":"Successfully initialized and updated submodules in path /workspace/repo"}
+
+[lint : npm-install] npm WARN old lockfile 
+[lint : npm-install] npm WARN old lockfile The package-lock.json file was created with an old version of npm,
+[lint : npm-install] npm WARN old lockfile so supplemental metadata must be fetched from the registry.
+[lint : npm-install] npm WARN old lockfile 
+[lint : npm-install] npm WARN old lockfile This is a one-time fix-up, please be patient...
+[lint : npm-install] npm WARN old lockfile 
+[test : git-source-repo-9hvsr] {"level":"info","ts":1645374825.125291,"caller":"git/git.go:170","msg":"Successfully cloned https://github.com/efbe2121/TektonGit @ a81c113dfc71c4f70420912c7f4f01f8432219df (grafted, HEAD, origin/main) in path /workspace/repo"}
+[test : git-source-repo-9hvsr] {"level":"info","ts":1645374826.3623996,"caller":"git/git.go:209","msg":"Successfully initialized and updated submodules in path /workspace/repo"}
+
+[lint : npm-install] npm WARN deprecated flat@4.1.0: Fixed a prototype pollution security issue in 4.1.0, please upgrade to ^4.1.1 or ^5.0.1.
+[test : npm-install] npm WARN old lockfile 
+[test : npm-install] npm WARN old lockfile The package-lock.json file was created with an old version of npm,
+[test : npm-install] npm WARN old lockfile so supplemental metadata must be fetched from the registry.
+[test : npm-install] npm WARN old lockfile 
+[test : npm-install] npm WARN old lockfile This is a one-time fix-up, please be patient...
+[test : npm-install] npm WARN old lockfile 
+[lint : npm-install] npm WARN deprecated formidable@1.2.2: Please upgrade to latest, formidable@v2 or formidable@v3! Check these notes: https://bit.ly/2ZEqIau
+[lint : npm-install] npm WARN deprecated debug@3.2.6: Debug versions >=3.2.0 <3.2.7 || >=4 <4.3.1 have a low-severity ReDos regression when used in a Node.js environment. It is recommended you upgrade to 3.2.7 or 4.3.1. (https://github.com/visionmedia/debug/issues/797)
+[lint : npm-install] npm WARN deprecated debug@3.2.6: Debug versions >=3.2.0 <3.2.7 || >=4 <4.3.1 have a low-severity ReDos regression when used in a Node.js environment. It is recommended you upgrade to 3.2.7 or 4.3.1. (https://github.com/visionmedia/debug/issues/797)
+[lint : npm-install] npm WARN deprecated debug@4.1.1: Debug versions >=3.2.0 <3.2.7 || >=4 <4.3.1 have a low-severity ReDos regression when used in a Node.js environment. It is recommended you upgrade to 3.2.7 or 4.3.1. (https://github.com/visionmedia/debug/issues/797)
+[lint : npm-install] npm WARN deprecated superagent@3.8.3: Please upgrade to v7.0.2+ of superagent.  We have fixed numerous issues with streams, form-data, attach(), filesystem errors not bubbling up (ENOENT on attach()), and all tests are now passing.  See the releases tab for more information at <https://github.com/visionmedia/superagent/releases>.
+[lint : npm-install] 
+[lint : npm-install] added 272 packages, and audited 273 packages in 35s
+[lint : npm-install] 
+[lint : npm-install] 30 packages are looking for funding
+[lint : npm-install]   run `npm fund` for details
+[lint : npm-install] 
+[lint : npm-install] 15 vulnerabilities (9 moderate, 6 high)
+[lint : npm-install] 
+[lint : npm-install] To address all issues, run:
+[lint : npm-install]   npm audit fix
+[lint : npm-install] 
+[lint : npm-install] Run `npm audit` for details.
+[lint : npm-install] npm notice 
+[lint : npm-install] npm notice New minor version of npm available! 8.4.1 -> 8.5.1
+[lint : npm-install] npm notice Changelog: <https://github.com/npm/cli/releases/tag/v8.5.1>
+[lint : npm-install] npm notice Run `npm install -g npm@8.5.1` to update!
+[lint : npm-install] npm notice 
+
+[lint : npm-lint] 
+[lint : npm-lint] > handson-tekton@1.0.0 lint
+[lint : npm-lint] > npx eslint index.js
+[lint : npm-lint] 
+[lint : npm-lint] npm notice 
+[lint : npm-lint] npm notice New minor version of npm available! 8.4.1 -> 8.5.1
+[lint : npm-lint] npm notice Changelog: <https://github.com/npm/cli/releases/tag/v8.5.1>
+[lint : npm-lint] npm notice Run `npm install -g npm@8.5.1` to update!
+[lint : npm-lint] npm notice 
+
+[test : npm-install] npm WARN deprecated flat@4.1.0: Fixed a prototype pollution security issue in 4.1.0, please upgrade to ^4.1.1 or ^5.0.1.
+[test : npm-install] npm WARN deprecated debug@4.1.1: Debug versions >=3.2.0 <3.2.7 || >=4 <4.3.1 have a low-severity ReDos regression when used in a Node.js environment. It is recommended you upgrade to 3.2.7 or 4.3.1. (https://github.com/visionmedia/debug/issues/797)
+[test : npm-install] npm WARN deprecated debug@3.2.6: Debug versions >=3.2.0 <3.2.7 || >=4 <4.3.1 have a low-severity ReDos regression when used in a Node.js environment. It is recommended you upgrade to 3.2.7 or 4.3.1. (https://github.com/visionmedia/debug/issues/797)
+[test : npm-install] npm WARN deprecated debug@3.2.6: Debug versions >=3.2.0 <3.2.7 || >=4 <4.3.1 have a low-severity ReDos regression when used in a Node.js environment. It is recommended you upgrade to 3.2.7 or 4.3.1. (https://github.com/visionmedia/debug/issues/797)
+[test : npm-install] npm WARN deprecated formidable@1.2.2: Please upgrade to latest, formidable@v2 or formidable@v3! Check these notes: https://bit.ly/2ZEqIau
+[test : npm-install] npm WARN deprecated superagent@3.8.3: Please upgrade to v7.0.2+ of superagent.  We have fixed numerous issues with streams, form-data, attach(), filesystem errors not bubbling up (ENOENT on attach()), and all tests are now passing.  See the releases tab for more information at <https://github.com/visionmedia/superagent/releases>.
+[test : npm-install] 
+[test : npm-install] added 272 packages, and audited 273 packages in 39s
+[test : npm-install] 
+[test : npm-install] 30 packages are looking for funding
+[test : npm-install]   run `npm fund` for details
+[test : npm-install] 
+[test : npm-install] 15 vulnerabilities (9 moderate, 6 high)
+[test : npm-install] 
+[test : npm-install] To address all issues, run:
+[test : npm-install]   npm audit fix
+[test : npm-install] 
+[test : npm-install] Run `npm audit` for details.
+[test : npm-install] npm notice 
+[test : npm-install] npm notice New minor version of npm available! 8.4.1 -> 8.5.1
+[test : npm-install] npm notice Changelog: <https://github.com/npm/cli/releases/tag/v8.5.1>
+[test : npm-install] npm notice Run `npm install -g npm@8.5.1` to update!
+[test : npm-install] npm notice 
+
+[test : npm-lint] 
+[test : npm-lint] > handson-tekton@1.0.0 test
+[test : npm-lint] > npx mocha --exit ./tests
+[test : npm-lint] 
+[test : npm-lint] Server started on port 3000
+[test : npm-lint] 
+[test : npm-lint] 
+[test : npm-lint]   GET /health - check server health
+[test : npm-lint]     ✓ should be healthy (316ms)
+[test : npm-lint] 
+[test : npm-lint]   GET /add - Additions
+[test : npm-lint] Adding 2 + 2
+[test : npm-lint] Result is 4
+[test : npm-lint]     ✓ should add two and two
+[test : npm-lint] 
+[test : npm-lint] 
+[test : npm-lint]   2 passing (341ms)
+[test : npm-lint] 
+[test : npm-lint] npm notice 
+[test : npm-lint] npm notice New minor version of npm available! 8.4.1 -> 8.5.1
+[test : npm-lint] npm notice Changelog: <https://github.com/npm/cli/releases/tag/v8.5.1>
+[test : npm-lint] npm notice Run `npm install -g npm@8.5.1` to update!
+[test : npm-lint] npm notice 
+[test : npm-lint] npm notice 
+[test : npm-lint] npm notice New minor version of npm available! 8.4.1 -> 8.5.1
+[test : npm-lint] npm notice Changelog: <https://github.com/npm/cli/releases/tag/v8.5.1>
+[test : npm-lint] npm notice Run `npm install -g npm@8.5.1` to update!
+[test : npm-lint] npm notice 
+
+2nd task not working

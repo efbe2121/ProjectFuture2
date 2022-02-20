@@ -1,0 +1,68 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: s2i-nodejs
+spec:
+  params:
+    - name: drcred
+      description: Contains your registry cred to push image to docker hub
+    - name: image-name
+      description: Name of the docker image that gonna be pushed and deployed locally
+      type: string
+    - name: registry
+      type: string
+      default: "docker.io"
+  resources:
+    inputs:
+      - name: repo
+        type: git
+  steps:
+    - name: generate
+      image: quay.io/openshift-pipeline/s2i
+      workingDir: /workspace/repo/app
+      command: ["s2i", "build", ".", "registry.access.redhat.com/ubi8/nodejs-12", "--as-dockerfile", "/gensource/Dockerfile.gen"]
+      volumeMounts:
+        - name: gensource
+          mountPath: /gensource
+    - name: build
+      image: quay.io/buildah/stable
+      env:
+        - name: dockerhub_cred_user
+          valueFrom:
+            secretKeyRef:
+              name: dhubcred
+              key: docker-user
+      workingDir: /gensource
+      command: ["buildah", "bud", "--tls-verify=false", "--layers", "-f", "/gensource/Dockerfile.gen", "-t", "$(params.registry)/$docker_hubcred_user/$(params.image-name)", "."]
+      volumeMounts:
+        - name: varlibcontainers
+          mountPath: /var/lib/containers
+        - name: gensource
+          mountPath: /gensource
+      securityContext:
+        privileged: true
+    - name: push
+      image: quay.io/buildah/stable
+      env:
+        - name: dockerhub_cred_user
+          valueFrom:
+            secretKeyRef:
+              name: dhubcred
+              key: docker-user
+        - name: dockerhub_cred_pass
+          valueFrom:
+            secretKeyRef:
+              name: dhubcred
+              key: docker-pass
+      command: ['buildah', 'push', '--creds=$dockerhub_cred_user:$dockerhub_cred_pass', '--tls-verify=false', '$(params.registry)/$dockerhub_cred_user/$(params.image-name)', 'docker://$(params.registry)/$dockerhub_cred_user/$(params.image-name)']
+      volumeMounts:
+        - name: varlibcontainers
+          mountPath: /var/lib/containers
+      securityContext:
+        privileged: true
+  volumes:
+    - name: varlibcontainers
+      emptyDir: {}
+    - name: gensource
+      emptyDir: {}

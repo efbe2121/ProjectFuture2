@@ -1,0 +1,3 @@
+[submodule "cicd/TektonGit"]
+	path = cicd/TektonGit
+	url = https://github.com/efbe2121/TektonGit.git

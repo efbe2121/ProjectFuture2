@@ -1,0 +1,38 @@
+# Event listener API : triggers.tekton.dev/v1beta1
+# Triggers Template API : triggers.tekton.dev/v1beta1
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: github-personal-token
+type: Opaque
+data:
+  token: Z2hwX25kWVJKUWpwNWd1OHdwNDNDd2ZPQjBHUW5xS1BkUjNlZUtadAo=
+
+---
+apiVersion: tekton.dev/v1alpha1
+kind: PipelineResource
+metadata:
+  name: git-source
+spec:
+  type: git
+  params:
+    - name: url
+      description: Git repository that gonna be used
+      value: https://github.com/efbe2121/TektonGit.git
+
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: 
+spec:
+  params:
+    - name: pathContext
+      description: Path to application inside git
+      default: "/workspace/repo/"
+      type: string
+    - name: action
+      description: Operation to be performed by your application
+      type: string
