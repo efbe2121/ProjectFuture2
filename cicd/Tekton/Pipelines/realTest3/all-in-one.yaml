@@ -66,7 +66,7 @@ spec:
               name: dhubcred
               key: docker-user
       workingDir: /gensource
-      command: ["buildah", "bud", "--tls-verify=false", "--layers", "-f", "/gensource/Dockerfile.gen", "-t", "$(params.registry)/$(docker_hubcred_user)/$(params.image-name)", "."]
+      command: ["buildah", "bud", "--tls-verify=false", "--layers", "-f", "/gensource/Dockerfile.gen", "-t", "$(params.registry)/$(dockerhub_cred_user)/$(params.image-name)", "."]
       volumeMounts:
         - name: varlibcontainers
           mountPath: /var/lib/containers
