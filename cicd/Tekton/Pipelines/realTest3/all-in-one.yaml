@@ -42,6 +42,7 @@ spec:
     - name: image-name
       description: Name of the docker image that gonna be pushed and deployed locally
       type: string
+      default: "nodejshandson"
     - name: registry
       type: string
       default: "docker.io"
@@ -108,7 +109,7 @@ spec:
   params:
     - name: image-name
       type: string
-      description: Name of the image to produce (will be user/image-name)
+      default: "nodejshandson"
     - name: registry
       type: string
       default: "docker.io"
