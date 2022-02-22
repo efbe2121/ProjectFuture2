@@ -2,7 +2,6 @@ server: https://192.168.56.25:9345
 write-kubeconfig-mode: "0644"
 token: {{ token_join }}
 tls-san:
-tls-san:
 {% for ips in tls_san %}
   - {{ ips }}
 {% endfor %}
