@@ -5,11 +5,10 @@ metadata:
   name: s2i-nodejs
 spec:
   params:
-    - name: drcred
-      description: Contains your registry cred to push image to docker hub
     - name: image-name
       description: Name of the docker image that gonna be pushed and deployed locally
       type: string
+      default: "nodejshandson"
     - name: registry
       type: string
       default: "docker.io"
@@ -34,7 +33,7 @@ spec:
               name: dhubcred
               key: docker-user
       workingDir: /gensource
-      command: ["buildah", "bud", "--tls-verify=false", "--layers", "-f", "/gensource/Dockerfile.gen", "-t", "$(params.registry)/$docker_hubcred_user/$(params.image-name)", "."]
+      command: ["buildah", "bud", "--tls-verify=false", "--layers", "-f", "/gensource/Dockerfile.gen", "-t", "$(params.registry)/$(dockerhub_cred_user)/$(params.image-name)", "."]
       volumeMounts:
         - name: varlibcontainers
           mountPath: /var/lib/containers
@@ -55,7 +54,7 @@ spec:
             secretKeyRef:
               name: dhubcred
               key: docker-pass
-      command: ['buildah', 'push', '--creds=$dockerhub_cred_user:$dockerhub_cred_pass', '--tls-verify=false', '$(params.registry)/$dockerhub_cred_user/$(params.image-name)', 'docker://$(params.registry)/$dockerhub_cred_user/$(params.image-name)']
+      command: ['buildah', 'push', '--creds=$(dockerhub_cred_user):$(dockerhub_cred_pass)', '--tls-verify=false', '$(params.registry)/$(dockerhub_cred_user)/$(params.image-name)', 'docker://$(params.registry)/$(dockerhub_cred_user)/$(params.image-name)']
       volumeMounts:
         - name: varlibcontainers
           mountPath: /var/lib/containers

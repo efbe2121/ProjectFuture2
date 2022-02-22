@@ -19,13 +19,13 @@ spec:
         type: git
   steps:
     - name: npm-install
-      image: node:latest
+      image: node:14
       workingDir: /workspace
       command:
         - /bin/bash
       args: ['-c', 'cd repo/$(params.pathContext) && npm install']
     - name: npm-lint
-      image: node:latest
+      image: node:14
       workingDir: /workspace
       command:
         - /bin/bash

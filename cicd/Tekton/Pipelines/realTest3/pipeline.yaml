@@ -5,11 +5,9 @@ metadata:
   name: app-deploy
 spec:
   params:
-    - name: drcred
-      type: string
     - name: image-name
       type: string
-      description: Name of the image to produce (will be user/image-name)
+      default: "nodejshandson"
     - name: registry
       type: string
       default: "docker.io"
@@ -29,7 +27,6 @@ spec:
         inputs:
           - name: repo
             resource: git-repo
-
     - name: test
       taskRef:
         name: npm
@@ -42,13 +39,8 @@ spec:
         inputs:
           - name: repo
             resource: git-repo
-            
     - name: build-and-deploy
       params:
-        - name: user
-          value: $(params.user)
-        - name: pass
-          value: $(params.pass)
         - name: image-name
           value: $(params.image-name)
         - name: registry
